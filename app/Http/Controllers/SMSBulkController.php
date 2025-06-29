@@ -6,6 +6,7 @@ use App\Jobs\SendSms;
 use Illuminate\Http\Request;
 use App\Services\SMSService;
 use Maatwebsite\Excel\Facades\Excel;
+use function PHPUnit\Framework\isEmpty;
 
 class SMSBulkController extends Controller
 {
@@ -35,6 +36,7 @@ class SMSBulkController extends Controller
 
         foreach ($rows as $row) {
             $raw = trim((string)$row[0]);
+            if($raw==null || $raw==''  ) continue;
             SendSms::dispatch($raw, $validated['message'], "بتاريخ".$validated['date']);
         }
 

@@ -15,7 +15,7 @@ class SMSService
     public function __construct()
     {
         $this->client = new Client();
-        $this->apiKey = "token";
+        $this->apiKey = env('SMSTOKEN');
         $this->apiUrl ="https://www.traccar.org/sms/";
     }
 

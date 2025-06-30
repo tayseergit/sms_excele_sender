@@ -8,15 +8,18 @@ use Illuminate\Support\Facades\Log;
 
 class SMSService
 {
-    protected $client;
-    protected $apiKey;
-    protected $apiUrl;
+     
+    protected Client $client;
+    protected string $apiKey;
+    protected string $apiUrl;
 
-    public function __construct()
+    public function __construct(Client $client)   // ← الحقن التلقائي
     {
-        $this->client = new Client();
-        $this->apiKey = "token";
-        $this->apiUrl ="https://www.traccar.org/sms/";
+        $this->client = $client;
+
+        // استدعاء القيم من config()
+        $this->apiKey = config('services.traccar.token');
+        $this->apiUrl = config('services.traccar.url');
     }
 
     public function sendSMS($phone, $message)

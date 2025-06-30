@@ -25,15 +25,20 @@ class SMSBulkController extends Controller
     public function sendFromExcel(Request $request)
     {
         /* 1 ─── التحقّق من المدخلات ───────────────────────────────────────── */
-        $validated = $request->validate([
-            'file'    => 'required|file|mimes:xlsx,xls',
-            'message' => 'required|string',
-            'date'    => 'required|date_format:Y-m-d',
-        ]);
+       $validated = $request->validate([
+    'file'    => 'required|file|mimes:xlsx,xls',
+    'message' => 'required|string',
+    'date'    => 'required|date_format:m-d',
+    'number'  => 'required|integer|between:1,12',  // ← حقل جديد
+]);
 
-        $msgBody   = $validated['message'];     // الرسالة الأساسيّة
-        $dateBody  = "بتاريخ".$validated['date'];        // التاريخ كنص
+$msgBody  = $validated['message'];
+$dateBody = ' بتاريخ ' . $validated['date'];
+$numBody  = ' الساعة ' . $validated['number'];
 
+$fullMessage = "{$msgBody}{$dateBody}{$numBody}";
+        // Log::info('FULL SMS BODY: '.$fullMessage);
+        // pt
         /* 2 ─── قراءة الملف ──────────────────────────────────────────────── */
         $rows = Excel::toCollection(null, $validated['file'])[0]; // الورقة الأولى
 
@@ -58,16 +63,16 @@ class SMSBulkController extends Controller
 
             try {
                 /* أرسل الرسالة الأولى */
-                $resp1 = $this->smsService->sendSMS($phone, $msgBody);   // ← غيّر الاسم إن لزم
+                $resp1 = $this->smsService->sendSMS($phone, $fullMessage);   // ← غيّر الاسم إن لزم
 
                 /* أرسل الرسالة الثانية (التاريخ) */
-                $resp2 = $this->smsService->sendSMS($phone, $dateBody);  // ← غيّر الاسم إن لزم
+                // $resp2 = $this->smsService->sendSMS($phone, $dateBody);  // ← غيّر الاسم إن لزم
 
                 $results[] = [
                     'phone'     => $phone,
                     'status'    => 'sent',
                     'response1' => $resp1,
-                    'response2' => $resp2,
+                    // 'response2' => $resp2,
                 ];
             } catch (\Throwable $e) {
                 $results[] = [

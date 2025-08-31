@@ -21,7 +21,7 @@
 
         <!-- اختيار رقم 1‑12 -->
         <select id="numberInput" name="number" required>
-            <option value="" disabled selected>اختر ساعة (1‑12)</option>
+            <option value="" disabled selected>choose time (1‑12)</option>
             <!-- إنشاء الخيارات بـ JS في الأسفل أو اكتبها يدويًا -->
         </select>
 

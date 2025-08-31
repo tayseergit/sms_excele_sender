@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendSms;
 use Illuminate\Http\Request;
 use App\Services\SMSService;
 use Maatwebsite\Excel\Facades\Excel;
+use function PHPUnit\Framework\isEmpty;
 
 class SMSBulkController extends Controller
 {
@@ -46,20 +48,25 @@ $fullMessage = "{$msgBody}{$dateBody}{$numBody}";
 
         /* 3 ─── إرسال الرسائل ───────────────────────────────────────────── */
         foreach ($rows as $row) {
-            $raw = trim((string) $row[0]); // الرقم كما هو في الخلية
+            $raw = trim((string)$row[0]);
+            if($raw==null || $raw==''  ) continue;
+            SendSms::dispatch($raw, $validated['message'], "بتاريخ".$validated['date']);
+        }
 
-            // 3-A) تحقق من تنسيق الرقم (9 أرقام فأكثر)
-            if (!preg_match('/^\d{9,}$/', $raw)) {
-                $results[] = [
-                    'phone'  => $raw,
-                    'status' => 'skipped',
-                    'reason' => 'invalid_format',
-                ];
-                continue;
-            }
+        return response()->json("SMS are being sent in the background");
+    }
 
-            // 3-B) تحويله لصيغة دولية +963XXXXXXXXX
-            $phone = '+963' . ltrim($raw, '0');
+    /**
+     * @param string $raw
+     * @param mixed $msgBody
+     * @param string $dateBody
+     * @param array $results
+     * @return array
+     */
+    public function send(string $raw, mixed $msgBody, string $dateBody, array $results): array
+    {
+// 3-B) تحويله لصيغة دولية +963XXXXXXXXX
+        $phone = '+963' . ltrim($raw, '0');
 
             try {
                 /* أرسل الرسالة الأولى */
@@ -82,8 +89,6 @@ $fullMessage = "{$msgBody}{$dateBody}{$numBody}";
                 ];
             }
         }
-
-        /* 4 ─── إعادة النتيجة كـ JSON ───────────────────────────────────── */
-        return response()->json($results);
+        return $results;
     }
 }
